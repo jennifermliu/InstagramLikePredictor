@@ -31,7 +31,7 @@ class InstagramScraper():
     def __init__(self):
         self.host = 'https://www.instagram.com/'
         self.driver = webdriver.Chrome()
-        self.userNumber = 24
+        self.userNumber = 6
         self.maxPostNumPerUser = 2
         self.savePath = 'instagramDataset.txt'
         
@@ -102,6 +102,7 @@ class InstagramScraper():
 
     def getPosts(self,userDict):
         featureList = []
+        j = 0
         for user in userDict:
             # print (userDict[user])
             self.driver.get(userDict[user])
@@ -158,15 +159,27 @@ class InstagramScraper():
                 for userLink in AtUserClass:
                     link = userLink.get_attribute('href')
                     AtUserLinkList.append(link)
+
+                hashTagNum = 0
+                hashTagPostsNum = ''
+                hashTagList = []
+                hashTagClass =  self.driver.find_element_by_xpath("//a[contains(@class, '_b0tqa')]")
+                hashTagClassList = hashTagClass.find_elements_by_xpath("//a[contains(@class, '_ezgzd')]")
+                if len(hashTagClassList) > 0:
+                    spanList = hashTagClassList[0].find_elements_by_css_selector('span')
+                    for span in spanList:
+                        l = span.find_element_by_css_selector('a').get_attribute('href')
+                        if l.find("/explore/tags/") >= 0:
+                            hashTagList.append(l)
                 
-                for link in AtUserLinkList:
-                    time.sleep(0.2)
-                    self.driver.get(link)
-                    numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
-                    nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
-                    AtUserPostsNum += nums[0].text + ';'
-                    AtUserFollowerNum += nums[1].text + ';'
-                    AtUserFollowingNum += nums[2].text + ';'
+                # for link in AtUserLinkList:
+                #     time.sleep(0.2)
+                #     self.driver.get(link)
+                #     numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
+                #     nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
+                #     AtUserPostsNum += nums[0].text + ';'
+                #     AtUserFollowerNum += nums[1].text + ';'
+                #     AtUserFollowingNum += nums[2].text + ';'
 
                 postDict["AtUserNum"] = AtUserNum
                 postDict["AtUserPostsNum"] = AtUserPostsNum
@@ -183,6 +196,13 @@ class InstagramScraper():
                 
                 # for link in hashLinkList:
                 #     self.driver.get(link)
+
+
+
+                # _b0tqa -> _ezgzd -> span
+
+
+
                     
 
 
@@ -193,6 +213,9 @@ class InstagramScraper():
             featureDict["followingNum"]= followingNum
             featureDict["posts"] = postsList
             featureList.append(featureDict)
+            j += 1
+            if j > 10:
+                break
 
         return featureList
 
@@ -204,7 +227,7 @@ class InstagramScraper():
             featureCommon = feature["user"] + '\t' + feature["postsNum"] + '\t' + feature["followersNum"] + '\t' + \
             feature["followingNum"]
             for post in feature["posts"]:
-                fea = featureCommon + '\t'+ '\t' + post['AtUserNum'] + '\t' + post['AtUserPostsNum'] + '\t' + post['AtUserFollowerNum'] + '\t' + post['AtUserFollowingNum']  + post['likeNum'] + '\n'
+                fea = featureCommon + '\t' + post['AtUserNum'] + '\t' + post['AtUserPostsNum'] + '\t' + post['AtUserFollowerNum'] + '\t' + post['AtUserFollowingNum'] + '\t' + post['likeNum'] + '\n'
                 f.write(fea)
         
         f.close()
