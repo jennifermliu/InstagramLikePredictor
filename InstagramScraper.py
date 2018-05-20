@@ -128,6 +128,7 @@ class InstagramScraper():
 
             postsList = []
             for link in postLinkList:
+                sleep(0.2)
                 self.driver.get(link)
                 # print (link)
 
@@ -135,7 +136,7 @@ class InstagramScraper():
                 if len(ifVideo) > 0:
                     continue
                 
-                self.driver.get(link)
+                # self.driver.get(link)
                 try:
                     likeNumClass = self.driver.find_element_by_xpath("//a[contains(@class, '_nzn1h')]")
                     likeNum = likeNumClass.find_element_by_css_selector('span').text
@@ -146,7 +147,34 @@ class InstagramScraper():
 
                     # print (likeNum)
                 except:
-                    continue  
+                    continue 
+
+                AtUserClass =  self.driver.find_elements_by_xpath("//a[contains(@class, 'notranslate')]")
+                AtUserNum = len(AtUserClass)
+                AtUserPostsNum = 0
+                AtUserFollowerNum = 0
+                AtUserFollowingNum = 0
+                AtUserLinkList = []
+                for userLink in AtUserClass:
+                    link = userLink.get_attribute('href')
+                    hashLinkList.append(link)
+                
+                for link in hashLinkList:
+                    sleep(0.2)
+                    self.driver.get(link)
+
+                # hashTagClass =  self.driver.find_elements_by_xpath("//a[contains(@class, 'notranslate')]")
+                # hashTagNum = len(hashTagClass)
+                # hashTagPostsNum = 0
+                # hashLinkList = []
+                # for hashTag in hashTagClass:
+                #     link = hashTag.get_attribute('href')
+                #     hashLinkList.append(link)
+                
+                # for link in hashLinkList:
+                #     self.driver.get(link)
+                    
+
 
             featureDict = {}
             featureDict["user"]= user
@@ -161,7 +189,7 @@ class InstagramScraper():
     
     def writeIntoFile(self,featureList):
         f = open(self.savePath,'w')
-        f.write("user   postsNum    followersNum    followingNum    likeNum")
+        f.write("user\tpostsNum\tfollowersNum\tfollowingNum\tlikeNum\n")
         for feature in featureList:
             featureCommon = feature["user"] + '\t' + feature["postsNum"] + '\t' + feature["followersNum"] + '\t' + \
             feature["followingNum"]
