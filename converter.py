@@ -52,8 +52,10 @@ def writeToCSV(data,pathname):
         writer.writerows(data)
 
 def groupLikeCount(count):
+    # print(count)
     res = math.log10(count)
     res = (int)(2*res)
+    # print(res)
     return res
 
 def getSumFromString(s):
@@ -65,7 +67,17 @@ def getSumFromString(s):
         total += d
     return total
 
+def getCategoryRange():
+    category = 0
+    start = 1
+    for i in range(1,10000001):
+        if groupLikeCount(i) !=category:
+            print("category "+str(category)+" starts at count "+str(start)+" and ends at "+str(i-1))
+            start = i
+            category += 1
+
 if __name__ == "__main__":
     filename = "instagramDataset.txt"
     results = parseText(filename)
     writeToCSV(results,"dataset.csv")
+    getCategoryRange()
