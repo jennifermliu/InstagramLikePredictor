@@ -128,7 +128,7 @@ class InstagramScraper():
 
             postsList = []
             for link in postLinkList:
-                sleep(0.2)
+                time.sleep(0.2)
                 self.driver.get(link)
                 # print (link)
 
@@ -150,18 +150,28 @@ class InstagramScraper():
                     continue 
 
                 AtUserClass =  self.driver.find_elements_by_xpath("//a[contains(@class, 'notranslate')]")
-                AtUserNum = len(AtUserClass)
-                AtUserPostsNum = 0
-                AtUserFollowerNum = 0
-                AtUserFollowingNum = 0
+                AtUserNum = str(len(AtUserClass))
+                AtUserPostsNum = ''
+                AtUserFollowerNum = ''
+                AtUserFollowingNum = ''
                 AtUserLinkList = []
                 for userLink in AtUserClass:
                     link = userLink.get_attribute('href')
-                    hashLinkList.append(link)
+                    AtUserLinkList.append(link)
                 
-                for link in hashLinkList:
-                    sleep(0.2)
+                for link in AtUserLinkList:
+                    time.sleep(0.2)
                     self.driver.get(link)
+                    numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
+                    nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
+                    AtUserPostsNum += nums[0].text + ';'
+                    AtUserFollowerNum += nums[1].text + ';'
+                    AtUserFollowingNum += nums[2].text + ';'
+
+                postDict["AtUserNum"] = AtUserNum
+                postDict["AtUserPostsNum"] = AtUserPostsNum
+                postDict["AtUserFollowerNum"] = AtUserFollowerNum
+                postDict["AtUserFollowingNum"] = AtUserFollowingNum
 
                 # hashTagClass =  self.driver.find_elements_by_xpath("//a[contains(@class, 'notranslate')]")
                 # hashTagNum = len(hashTagClass)
@@ -189,12 +199,12 @@ class InstagramScraper():
     
     def writeIntoFile(self,featureList):
         f = open(self.savePath,'w')
-        f.write("user\tpostsNum\tfollowersNum\tfollowingNum\tlikeNum\n")
+        f.write("user\tpostsNum\tfollowersNum\tfollowingNum\tAtUserNum\tAtUserPostsNum\tAtUserFollowerNum\tAtUserFollowingNum\tlikeNum\n")
         for feature in featureList:
             featureCommon = feature["user"] + '\t' + feature["postsNum"] + '\t' + feature["followersNum"] + '\t' + \
             feature["followingNum"]
             for post in feature["posts"]:
-                fea = featureCommon + '\t' + post['likeNum'] + '\n'
+                fea = featureCommon + '\t'+ '\t' + post['AtUserNum'] + '\t' + post['AtUserPostsNum'] + '\t' + post['AtUserFollowerNum'] + '\t' + post['AtUserFollowingNum']  + post['likeNum'] + '\n'
                 f.write(fea)
         
         f.close()
