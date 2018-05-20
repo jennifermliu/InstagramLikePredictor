@@ -166,7 +166,7 @@ class InstagramScraper():
             featureCommon = feature["user"] + '\t' + feature["postsNum"] + '\t' + feature["followersNum"] + '\t' + \
             feature["followingNum"]
             for post in feature["posts"]:
-                fea = featureCommon + '\t' + post['likeNum']
+                fea = featureCommon + '\t' + post['likeNum'] + '\n'
                 f.write(fea)
         
         f.close()
