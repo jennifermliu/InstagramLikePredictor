@@ -32,13 +32,17 @@ def parseText(filename):
                 result = []
                 for j in range(len(values)):
                     v = values[j]
+                    # skip username
                     if j != 0:
+                        # columns 5 to 7 need special handling
                         if j>=5 and j<=7:
                             v = getSumFromString(v)
                         else:
                             v = convertStringToInt(v)
+                            # group likes into diffenrent groups
+                            if j == 8:
+                                v = groupLikeCount(v)
                         result.append(v)
-
                 results.append(result)
     return results
 
@@ -54,7 +58,7 @@ def groupLikeCount(count):
 
 def getSumFromString(s):
     data = s.split(';')
-    data = data[:-1]
+    data = data[:-1] #skip last one because s ends with ;
     total = 0
     for d in data:
         d = convertStringToInt(d)
