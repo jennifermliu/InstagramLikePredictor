@@ -35,7 +35,9 @@ def parseText(filename):
                     # skip username
                     if j != 0:
                         # columns 5 to 7 need special handling
-                        if j>=5 and j<=7:
+                        if j>=6 and j<=8:
+                            v = getSumFromString(v)
+                        elif j==10:
                             v = getSumFromString(v)
                         else:
                             v = convertStringToInt(v)
@@ -77,7 +79,7 @@ def getCategoryRange():
             category += 1
 
 if __name__ == "__main__":
-    filename = "instagramDataset.txt"
+    filename = "dataset/totalDataset.txt"
     results = parseText(filename)
     writeToCSV(results,"dataset.csv")
     getCategoryRange()
