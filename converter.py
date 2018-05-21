@@ -42,7 +42,7 @@ def parseText(filename):
                         else:
                             v = convertStringToInt(v)
                             # group likes into diffenrent groups
-                            if j == 8:
+                            if j == 11:
                                 v = groupLikeCount(v)
                         result.append(v)
                 results.append(result)
@@ -79,7 +79,7 @@ def getCategoryRange():
             category += 1
 
 if __name__ == "__main__":
-    filename = "dataset/totalDataset.txt"
+    filename = "dataset/fixedtotalDataset.txt"
     results = parseText(filename)
     writeToCSV(results,"dataset.csv")
     getCategoryRange()
