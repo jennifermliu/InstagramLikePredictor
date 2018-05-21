@@ -11,7 +11,6 @@ import re
 import sys
 import time
 
-
 try:
     from urlparse import urljoin
     from urllib import urlretrieve
@@ -31,8 +30,8 @@ class InstagramScraper():
     def __init__(self):
         self.host = 'https://www.instagram.com/'
         self.driver = webdriver.Chrome()
-        self.userNumber = 6
-        self.maxPostNumPerUser = 2
+        self.userNumber = 120
+        self.maxPostNumPerUser = 500
         self.savePath = 'instagramDataset.txt'
         
 
@@ -70,11 +69,13 @@ class InstagramScraper():
  
     def getPostLinks(self):
         sdriver = self.driver
-        self.driver.get(urljoin(self.host,"explore/"))
+        try:
+            self.driver.get(urljoin(self.host,"explore/"))
+        except:
+            return
         assert "Instagram" in self.driver.title
         time.sleep(2)
-        #self.scroll_to_num_of_posts(self.userNumber)
-        #postLinks = self.driver.find_elements_by_class_name("_mck9w")
+        self.scroll_to_num_of_posts(self.userNumber)
         postLinks = self.driver.find_elements_by_xpath("//div[contains(@class, '_mck9w _gvoze  _tn0ps')]")
         print("posts: {}".format(len(postLinks)))
         postLinksList = []
@@ -90,144 +91,215 @@ class InstagramScraper():
     def getUsers(self,postLinksList):
         userDict = {}
         for postLink in postLinksList:
-            self.driver.get(postLink)
-            userClass = self.driver.find_element_by_xpath("//div[contains(@class, '_eeohz')]")
-            user = userClass.find_element_by_css_selector('a').text
-            userLink = userClass.find_element_by_css_selector('a').get_attribute('href')
-            #print (user)
-            if user not in userDict:
-                userDict[user] = userLink
+            try:
+                self.driver.get(postLink)
+                userClass = self.driver.find_element_by_xpath("//div[contains(@class, '_eeohz')]")
+                user = userClass.find_element_by_css_selector('a').text
+                userLink = userClass.find_element_by_css_selector('a').get_attribute('href')
+                #print (user)
+                if user not in userDict:
+                    userDict[user] = userLink
+            except:
+                continue
 
         return userDict
 
     def getPosts(self,userDict):
+        f = open(self.savePath,'w')
+        f.write("user\tpostsNum\tfollowersNum\tfollowingNum\thasLocation\tAtUserNum\tAtUserPostsNum\tAtUserFollowerNum\tAtUserFollowingNum\thashTagNum\thashTagPostsNum\tlikeNum\n")
+
         featureList = []
         j = 0
         for user in userDict:
             # print (userDict[user])
-            self.driver.get(userDict[user])
-            numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
-            nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
-            postsNum = nums[0].text
-            followersNum = nums[1].text
-            followingNum = nums[2].text
-            # print (user)
-            # print (postsNum)
-            # print (followersNum)
-            # print (followingNum)
-            postLinkList = []
+            try:
+                self.driver.get(userDict[user])
             
-            i = 0
-            postsClass = self.driver.find_elements_by_xpath("//div[contains(@class, '_mck9w _gvoze  _tn0ps')]")
-            for postLink in postsClass:
-                link = postLink.find_element_by_css_selector('a').get_attribute('href')
-                postLinkList.append(link)
-
-                i += 1
-                if i >= self.maxPostNumPerUser:
-                    break
-
-            postsList = []
-            for link in postLinkList:
-                time.sleep(0.2)
-                self.driver.get(link)
-                # print (link)
-
-                ifVideo = self.driver.find_elements_by_xpath("//a[contains(@class, '_qzesf')]")
-                if len(ifVideo) > 0:
-                    continue
+                numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
+                nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
+                postsNum = nums[0].text
+                followersNum = nums[1].text
+                followingNum = nums[2].text
+                # print (user)
+                # print (postsNum)
+                # print (followersNum)
+                # print (followingNum)
+                postLinkList = []
                 
-                # self.driver.get(link)
-                try:
-                    likeNumClass = self.driver.find_element_by_xpath("//a[contains(@class, '_nzn1h')]")
-                    likeNum = likeNumClass.find_element_by_css_selector('span').text
-                
+                i = 0
+                self.scroll_to_num_of_posts(self.maxPostNumPerUser)
+                postsClass = self.driver.find_elements_by_xpath("//div[contains(@class, '_mck9w _gvoze  _tn0ps')]")
+                for postLink in postsClass:
+                    link = postLink.find_element_by_css_selector('a').get_attribute('href')
+                    postLinkList.append(link)
+
+                    i += 1
+                    if i >= self.maxPostNumPerUser:
+                        break
+
+                postsList = []
+                for link in postLinkList:
+                    time.sleep(0.5)
+                    self.driver.get(link)
+                    # print (link)
+
+                    ifVideo = self.driver.find_elements_by_xpath("//a[contains(@class, '_qzesf')]")
+                    if len(ifVideo) > 0:
+                        continue
+                    
+                    # self.driver.get(link)
                     postDict = {}
-                    postDict["likeNum"] = likeNum
-                    postsList.append(postDict)
+                    likeNum = '0'
+                    try:
+                        likeNumClass = self.driver.find_element_by_xpath("//a[contains(@class, '_nzn1h')]")
+                        likeNum = likeNumClass.find_element_by_css_selector('span').text             
+                        postDict["likeNum"] = likeNum
+                        # print (likeNum)
+                    except:
+                        continue 
 
-                    # print (likeNum)
-                except:
-                    continue 
-
-                AtUserClass =  self.driver.find_elements_by_xpath("//a[contains(@class, 'notranslate')]")
-                AtUserNum = str(len(AtUserClass))
-                AtUserPostsNum = ''
-                AtUserFollowerNum = ''
-                AtUserFollowingNum = ''
-                AtUserLinkList = []
-                for userLink in AtUserClass:
-                    link = userLink.get_attribute('href')
-                    AtUserLinkList.append(link)
-
-                hashTagNum = 0
-                hashTagPostsNum = ''
-                hashTagList = []
-                hashTagClass =  self.driver.find_element_by_xpath("//a[contains(@class, '_b0tqa')]")
-                hashTagClassList = hashTagClass.find_elements_by_xpath("//a[contains(@class, '_ezgzd')]")
-                if len(hashTagClassList) > 0:
-                    spanList = hashTagClassList[0].find_elements_by_css_selector('span')
-                    for span in spanList:
-                        l = span.find_element_by_css_selector('a').get_attribute('href')
-                        if l.find("/explore/tags/") >= 0:
-                            hashTagList.append(l)
-                
-                # for link in AtUserLinkList:
-                #     time.sleep(0.2)
-                #     self.driver.get(link)
-                #     numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
-                #     nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
-                #     AtUserPostsNum += nums[0].text + ';'
-                #     AtUserFollowerNum += nums[1].text + ';'
-                #     AtUserFollowingNum += nums[2].text + ';'
-
-                postDict["AtUserNum"] = AtUserNum
-                postDict["AtUserPostsNum"] = AtUserPostsNum
-                postDict["AtUserFollowerNum"] = AtUserFollowerNum
-                postDict["AtUserFollowingNum"] = AtUserFollowingNum
-
-                # hashTagClass =  self.driver.find_elements_by_xpath("//a[contains(@class, 'notranslate')]")
-                # hashTagNum = len(hashTagClass)
-                # hashTagPostsNum = 0
-                # hashLinkList = []
-                # for hashTag in hashTagClass:
-                #     link = hashTag.get_attribute('href')
-                #     hashLinkList.append(link)
-                
-                # for link in hashLinkList:
-                #     self.driver.get(link)
-
-
-
-                # _b0tqa -> _ezgzd -> span
-
-
-
+                    hasLocation = '0'
+                    try:
+                        locationClass = self.driver.find_elements_by_xpath("//a[contains(@class, '_6y8ij')]")
+                        if len(locationClass) > 0:
+                            hasLocation = '1'
+                    except:
+                        print ("exception2")
+                    postDict["hasLocation"] = hasLocation
                     
 
+                    # AtUserClass =  self.driver.find_elements_by_xpath("//a[contains(@class, 'notranslate')]")
+                    AtUserNum = '0'
+                    AtUserPostsNum = ''
+                    AtUserFollowerNum = ''
+                    AtUserFollowingNum = ''
+                    AtUserLinkList = []
+                    # for userLink in AtUserClass:
+                    #     link = userLink.get_attribute('href')
+                    #     AtUserLinkList.append(link)
 
-            featureDict = {}
-            featureDict["user"]= user
-            featureDict["postsNum"]= postsNum
-            featureDict["followersNum"]= followersNum
-            featureDict["followingNum"]= followingNum
-            featureDict["posts"] = postsList
-            featureList.append(featureDict)
-            j += 1
-            if j > 10:
-                break
+                    hashTagNum = 0
+                    hashTagPostsNum = ''
+                    hashTagList = []
+
+                    CommetClass =  self.driver.find_element_by_xpath("//ul[contains(@class, '_b0tqa')]")
+                    CommetClassList = CommetClass.find_elements_by_xpath("//li[contains(@class, '_ezgzd')]")
+                    if len(CommetClassList) > 0:
+                        try:
+                            span = CommetClassList[0].find_element_by_css_selector('span')
+                            ll = span.find_elements_by_css_selector('a')
+                            for l in ll:
+                                try:
+                                    hashTagLink = l.get_attribute('href')
+                                    if hashTagLink.find("/explore/tags/") >= 0:
+                                        hashTagList.append(hashTagLink)
+                                        # print (hashTagLink)
+                                except:
+                                    continue
+                        except:
+                            print ("exception1")
+                    hashTagNum = str(len(hashTagList))
+
+                    CommetClass =  self.driver.find_element_by_xpath("//ul[contains(@class, '_b0tqa')]")
+                    CommetClassList = CommetClass.find_elements_by_xpath("//li[@class='_ezgzd']")
+                    if len(CommetClassList) > 0:
+                        try:
+                            # print (len(CommetClassList))
+                            # print (CommetClassList[0])
+                            temp = CommetClassList[0]
+                            AtUserSpan = temp.find_element_by_css_selector('span')
+                            AtUserClass = AtUserSpan.find_elements_by_xpath("//a[@class='notranslate']")
+                            for userLink in AtUserClass:
+                                link = userLink.get_attribute('href')
+                                AtUserLinkList.append(link)
+                                # print (link)
+                        except:
+                            continue
+
+                    AtUserNum = str(len(AtUserLinkList))
+                        
+                    for link in hashTagList:
+                        time.sleep(0.5)
+                        # print (link)
+                        try:
+                            self.driver.get(link)
+                            nums = self.driver.find_element_by_xpath("//span[contains(@class, '_fd86t')]")
+                            hashTagPostsNum += nums.text
+                        except:
+                            continue
+                        
+
+                    
+                    for link in AtUserLinkList:
+                        time.sleep(0.5)
+                        try:
+                            self.driver.get(link)
+                            numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
+                            nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
+                            AtUserPostsNum += nums[0].text + ';'
+                            AtUserFollowerNum += nums[1].text + ';'
+                            AtUserFollowingNum += nums[2].text + ';'
+                        except:
+                            continue
+
+
+                    fea = user + '\t' + postsNum + '\t' + followersNum + '\t' + followingNum + '\t' + hasLocation + \
+                                    '\t' + AtUserNum + '\t' + AtUserPostsNum +  \
+                                    '\t' + AtUserFollowerNum + '\t' + AtUserFollowingNum + \
+                                    '\t' + hashTagNum + '\t' + hashTagPostsNum + \
+                                    '\t' + likeNum + '\n'
+                    f.write(fea)
+                    # postDict["hashTagNum"] = hashTagNum
+                    # postDict["hashTagPostsNum"] = hashTagPostsNum
+                    # postDict["AtUserNum"] = AtUserNum
+                    # postDict["AtUserPostsNum"] = AtUserPostsNum
+                    # postDict["AtUserFollowerNum"] = AtUserFollowerNum
+                    # postDict["AtUserFollowingNum"] = AtUserFollowingNum
+                    # postsList.append(postDict)
+
+                    # hashTagClass =  self.driver.find_elements_by_xpath("//a[contains(@class, 'notranslate')]")
+                    # hashTagNum = len(hashTagClass)
+                    # hashTagPostsNum = 0
+                    # hashLinkList = []
+                    # for hashTag in hashTagClass:
+                    #     link = hashTag.get_attribute('href')
+                    #     hashLinkList.append(link)
+                    
+                    # for link in hashLinkList:
+                    #     self.driver.get(link)
+
+                    # _b0tqa -> _ezgzd -> span         
+
+
+                # featureDict = {}
+                # featureDict["user"]= user
+                # featureDict["postsNum"]= postsNum
+                # featureDict["followersNum"]= followersNum
+                # featureDict["followingNum"]= followingNum
+                # featureDict["posts"] = postsList
+                # featureList.append(featureDict)
+                # j += 1
+                # if j > 2:
+                #     break
+            except:
+                continue
+
+        f.close()
 
         return featureList
 
     
     def writeIntoFile(self,featureList):
         f = open(self.savePath,'w')
-        f.write("user\tpostsNum\tfollowersNum\tfollowingNum\tAtUserNum\tAtUserPostsNum\tAtUserFollowerNum\tAtUserFollowingNum\tlikeNum\n")
+        f.write("user\tpostsNum\tfollowersNum\tfollowingNum\thasLocation\tAtUserNum\tAtUserPostsNum\tAtUserFollowerNum\tAtUserFollowingNum\thashTagNum\thashTagPostsNum\tlikeNum\n")
         for feature in featureList:
             featureCommon = feature["user"] + '\t' + feature["postsNum"] + '\t' + feature["followersNum"] + '\t' + \
             feature["followingNum"]
             for post in feature["posts"]:
-                fea = featureCommon + '\t' + post['AtUserNum'] + '\t' + post['AtUserPostsNum'] + '\t' + post['AtUserFollowerNum'] + '\t' + post['AtUserFollowingNum'] + '\t' + post['likeNum'] + '\n'
+                fea = featureCommon + '\t' + post['hasLocation'] + '\t' + post['AtUserNum'] + '\t' + post['AtUserPostsNum'] +  \
+                '\t' + post['AtUserFollowerNum'] + '\t' + post['AtUserFollowingNum'] + \
+                '\t' + post['hashTagNum'] + '\t' + post['hashTagPostsNum'] + \
+                '\t' + post['likeNum'] + '\n'
                 f.write(fea)
         
         f.close()
@@ -240,10 +312,10 @@ class InstagramScraper():
         print("posts: {}, number: {}".format(num_of_posts, number))
         number = number if number < num_of_posts else num_of_posts
 
-        num_to_scroll = int((number - 12) / 12) + 1
+        num_to_scroll = int((number - 6) / 6) + 1
         for _ in range(num_to_scroll):
             self.driver.execute_script(SCROLL_DOWN)
-            time.sleep(0.2)
+            time.sleep(1)
             self.driver.execute_script(SCROLL_UP)
             time.sleep(0.2)
 
@@ -258,6 +330,7 @@ if __name__ == "__main__":
     postLinksList = test.getPostLinks()
     userDict = test.getUsers(postLinksList)
     featureList = test.getPosts(userDict)
-    test.writeIntoFile(featureList)
+    # test.writeIntoFile(featureList)
+    # test.getPosts({"xxxx":"https://www.instagram.com/maddogracer4/"})
     test.close()
 
