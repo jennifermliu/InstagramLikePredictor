@@ -18,6 +18,49 @@ def convertStringToInt(v):
         s = int(v)
     return s
 
+# f = open("./dataset/fixedtotalDataset.txt","r")
+# fw = open("./dataset/finalDataset.txt","w")
+# lines = f.readlines()
+# for line in lines:
+#     if line.strip() == "":
+#         continue
+#     else:
+#         fw.write(line)
+# f.close()
+# fw.close()
+
+
+# def fixedbug(s):
+#     res = ''
+#     i = 0
+#     for ss in s:
+#         if ss == ',':
+#            i = 0
+#            res += ss
+#         elif i < 3:
+#             res += ss
+#             i += 1
+#         else:
+#             res += ';' + ss
+#             i = 1
+#     return res
+
+# f = open("./dataset/totalDataset.txt","r")
+# fw = open("./dataset/fixedtotalDataset.txt","w")
+# lines = f.readlines()
+# for line in lines:
+#     fea = ''
+#     feas = line.split("\t")
+#     # print (len(feas))
+#     # break
+#     if len(feas) > 10:
+#         feas[10] = fixedbug(feas[10])
+#         fea = '\t'.join(feas)
+#         fw.write(fea)
+#         fw.write('\n')
+# f.close()
+# fw.close()
+
 def parseText(filename):
     results = []
     with open(filename) as f:
@@ -34,6 +77,11 @@ def parseText(filename):
                     v = values[j]
                     # skip username
                     if j != 0:
+                        
+                        # if j == 4:
+                        #     # print (v)
+                        #     vv = str(int(v)+1) + ":" + str(v)
+                        #     v = vv
                         # columns 5 to 7 need special handling
                         if j>=6 and j<=8:
                             v = getSumFromString(v)
@@ -44,6 +92,7 @@ def parseText(filename):
                             # group likes into diffenrent groups
                             if j == 11:
                                 v = groupLikeCount(v)
+                                # v = str(vv+1) + ":" + str(vv)
                         result.append(v)
                 results.append(result)
     return results
@@ -56,7 +105,7 @@ def writeToCSV(data,pathname):
 def groupLikeCount(count):
     # print(count)
     res = math.log10(count)
-    res = (int)(2*res)
+    res = (int)(res)
     # print(res)
     return res
 
@@ -78,8 +127,10 @@ def getCategoryRange():
             start = i
             category += 1
 
+
+
 if __name__ == "__main__":
-    filename = "dataset/fixedtotalDataset.txt"
+    filename = "dataset/finalDataset.txt"
     results = parseText(filename)
     writeToCSV(results,"dataset.csv")
     getCategoryRange()
