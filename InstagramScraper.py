@@ -76,7 +76,8 @@ class InstagramScraper():
         assert "Instagram" in self.driver.title
         time.sleep(2)
         self.scroll_to_num_of_posts(self.userNumber)
-        postLinks = self.driver.find_elements_by_xpath("//div[contains(@class, '_mck9w _gvoze  _tn0ps')]")
+        # postLinks = self.driver.find_elements_by_xpath("//div[contains(@class, '_mck9w _gvoze  _tn0ps')]")
+        postLinks = self.driver.find_elements_by_xpath("//div[contains(@class, 'v1Nh3 kIKUG  _bz0w')]")
         print("posts: {}".format(len(postLinks)))
         postLinksList = []
         for postLink in postLinks:
@@ -84,6 +85,8 @@ class InstagramScraper():
         # if len(postLinksList):
         #     print (postLinksList[0])
 
+        print ("len of postLinks")
+        print (len(postLinksList))
         return postLinksList
         
         # print (postLinks[0])
@@ -93,10 +96,11 @@ class InstagramScraper():
         for postLink in postLinksList:
             try:
                 self.driver.get(postLink)
-                userClass = self.driver.find_element_by_xpath("//div[contains(@class, '_eeohz')]")
+                # userClass = self.driver.find_element_by_xpath("//div[contains(@class, '_eeohz')]")
+                userClass = self.driver.find_element_by_xpath("//div[contains(@class, 'e1e1d')]")
                 user = userClass.find_element_by_css_selector('a').text
                 userLink = userClass.find_element_by_css_selector('a').get_attribute('href')
-                #print (user)
+                # print (userLink)
                 if user not in userDict:
                     userDict[user] = userLink
             except:
@@ -115,8 +119,9 @@ class InstagramScraper():
             try:
                 self.driver.get(userDict[user])
             
-                numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
-                nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
+                # numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
+                # nums = self.driver.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
+                nums = self.driver.find_elements_by_xpath("//span[contains(@class, 'g47SY')]")
                 postsNum = nums[0].text
                 followersNum = nums[1].text
                 followingNum = nums[2].text
@@ -128,39 +133,51 @@ class InstagramScraper():
                 
                 i = 0
                 self.scroll_to_num_of_posts(self.maxPostNumPerUser)
-                postsClass = self.driver.find_elements_by_xpath("//div[contains(@class, '_mck9w _gvoze  _tn0ps')]")
+                # postsClass = self.driver.find_elements_by_xpath("//div[contains(@class, '_mck9w _gvoze  _tn0ps')]")
+                postsClass = self.driver.find_elements_by_xpath("//div[contains(@class, 'v1Nh3 kIKUG  _bz0w')]")
+                # print (len(postsClass))
                 for postLink in postsClass:
                     link = postLink.find_element_by_css_selector('a').get_attribute('href')
                     postLinkList.append(link)
-
+                    # print (link)
                     i += 1
                     if i >= self.maxPostNumPerUser:
                         break
+                
+                # print ("len of current user's posts")
+                # print (i)
 
                 postsList = []
                 for link in postLinkList:
                     time.sleep(0.5)
                     self.driver.get(link)
-                    # print (link)
 
-                    ifVideo = self.driver.find_elements_by_xpath("//a[contains(@class, '_qzesf')]")
-                    if len(ifVideo) > 0:
-                        continue
+                    # ifVideo = self.driver.find_elements_by_xpath("//a[contains(@class, '_qzesf')]")
+                    # if len(ifVideo) > 0:
+                    #     continue
                     
                     # self.driver.get(link)
                     postDict = {}
                     likeNum = '0'
+                    # print ("current link")
+                    # print (link)
+                    # print ("getting likeness")
                     try:
-                        likeNumClass = self.driver.find_element_by_xpath("//a[contains(@class, '_nzn1h')]")
+                        # likeNumClass = self.driver.find_element_by_xpath("//a[contains(@class, '_nzn1h')]")
+                        likeNumClass = self.driver.find_element_by_xpath("//a[contains(@class, 'zV_Nj')]")
                         likeNum = likeNumClass.find_element_by_css_selector('span').text             
                         postDict["likeNum"] = likeNum
                         # print (likeNum)
                     except:
                         continue 
 
+                    # print (link)
+
                     hasLocation = '0'
                     try:
-                        locationClass = self.driver.find_elements_by_xpath("//a[contains(@class, '_6y8ij')]")
+                        # locationClass = self.driver.find_elements_by_xpath("//a[contains(@class, '_6y8ij')]")
+                        locationClass = self.driver.find_elements_by_xpath("//a[contains(@class, 'O4GlU')]")
+                        
                         if len(locationClass) > 0:
                             hasLocation = '1'
                     except:
@@ -182,8 +199,9 @@ class InstagramScraper():
                     hashTagPostsNum = ''
                     hashTagList = []
 
-                    CommetClass =  self.driver.find_element_by_xpath("//ul[contains(@class, '_b0tqa')]")
-                    CommetClassList = CommetClass.find_elements_by_xpath("//li[contains(@class, '_ezgzd')]")
+                    # CommetClass =  self.driver.find_element_by_xpath("//ul[contains(@class, '_b0tqa')]")
+                    # CommetClassList = CommetClass.find_elements_by_xpath("//li[contains(@class, '_ezgzd')]")
+                    CommetClassList = self.driver.find_elements_by_xpath("//li[@class='gElp9']")
                     if len(CommetClassList) > 0:
                         try:
                             span = CommetClassList[0].find_element_by_css_selector('span')
@@ -200,8 +218,9 @@ class InstagramScraper():
                             print ("exception1")
                     hashTagNum = str(len(hashTagList))
 
-                    CommetClass =  self.driver.find_element_by_xpath("//ul[contains(@class, '_b0tqa')]")
-                    CommetClassList = CommetClass.find_elements_by_xpath("//li[@class='_ezgzd']")
+                    # CommetClass =  self.driver.find_element_by_xpath("//ul[contains(@class, '_b0tqa')]")
+                    # CommetClassList = CommetClass.find_elements_by_xpath("//li[@class='_ezgzd']")
+                    CommetClassList = self.driver.find_elements_by_xpath("//li[@class='gElp9']")
                     if len(CommetClassList) > 0:
                         try:
                             # print (len(CommetClassList))
@@ -223,8 +242,9 @@ class InstagramScraper():
                         # print (link)
                         try:
                             self.driver.get(link)
-                            nums = self.driver.find_element_by_xpath("//span[contains(@class, '_fd86t')]")
-                            hashTagPostsNum += nums.text
+                            # nums = self.driver.find_element_by_xpath("//span[contains(@class, '_fd86t')]")
+                            nums = self.driver.find_element_by_xpath("//span[contains(@class, 'g47SY')]")
+                            hashTagPostsNum += nums.text + ';'
                         except:
                             continue
                         
@@ -234,20 +254,22 @@ class InstagramScraper():
                         time.sleep(0.5)
                         try:
                             self.driver.get(link)
-                            numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
-                            nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
+                            # numsClass = self.driver.find_element_by_xpath("//ul[contains(@class, '_h9luf')]")
+                            # nums = numsClass.find_elements_by_xpath("//span[contains(@class, '_fd86t')]")
+                            nums = numsClass.find_elements_by_xpath("//span[contains(@class, 'g47SY')]")
                             AtUserPostsNum += nums[0].text + ';'
                             AtUserFollowerNum += nums[1].text + ';'
                             AtUserFollowingNum += nums[2].text + ';'
                         except:
                             continue
 
-
+                    # print ("one sample")
                     fea = user + '\t' + postsNum + '\t' + followersNum + '\t' + followingNum + '\t' + hasLocation + \
                                     '\t' + AtUserNum + '\t' + AtUserPostsNum +  \
                                     '\t' + AtUserFollowerNum + '\t' + AtUserFollowingNum + \
                                     '\t' + hashTagNum + '\t' + hashTagPostsNum + \
                                     '\t' + likeNum + '\n'
+                    # print (fea)
                     f.write(fea)
                     # postDict["hashTagNum"] = hashTagNum
                     # postDict["hashTagPostsNum"] = hashTagPostsNum
@@ -307,7 +329,8 @@ class InstagramScraper():
 
     def scroll_to_num_of_posts(self, number):
         # Get total number of posts of page
-        postLinks = self.driver.find_elements_by_xpath("//div[contains(@class, '_mck9w _gvoze  _tn0ps')]")
+        # postLinks = self.driver.find_elements_by_xpath("//div[contains(@class, '_mck9w _gvoze  _tn0ps')]")
+        postLinks = self.driver.find_elements_by_xpath("//div[contains(@class, 'v1Nh3 kIKUG  _bz0w')]")
         num_of_posts = len(postLinks)
         print("posts: {}, number: {}".format(num_of_posts, number))
         number = number if number < num_of_posts else num_of_posts
